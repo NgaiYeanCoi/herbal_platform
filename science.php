@@ -1,7 +1,7 @@
 <?php
 include 'config.php';
 $topic = isset($_GET['topic']) ? trim($_GET['topic']) : '';
-$validTopics = ['药食同源','药用常识','园艺观赏','季节养生'];
+$validTopics = ['药食同源', '药用常识', '园艺观赏', '季节养生'];
 if (!in_array($topic, $validTopics, true)) {
     $topic = '';
 }
@@ -16,18 +16,19 @@ if ($cat !== '') {
 $stmt = $pdo->prepare("SELECT * " . $sqlBase . " ORDER BY create_time DESC LIMIT 6");
 $stmt->execute($params);
 $reco = $stmt->fetchAll(PDO::FETCH_ASSOC);
-?>
 
+ob_start();
+?>
 <div class="container mt-5">
-    <h2>科普专区</h2>
-    <form method="get" class="row g-3 mt-3">
+    <h2 class="mb-4">科普专区</h2>
+    <form method="get" class="row g-3">
         <div class="col-md-4">
             <select name="topic" class="form-select">
                 <option value="">全部主题</option>
-                <option value="药食同源" <?php echo $topic==='药食同源'?'selected':''; ?>>药食同源</option>
-                <option value="药用常识" <?php echo $topic==='药用常识'?'selected':''; ?>>药用常识</option>
-                <option value="园艺观赏" <?php echo $topic==='园艺观赏'?'selected':''; ?>>园艺观赏</option>
-                <option value="季节养生" <?php echo $topic==='季节养生'?'selected':''; ?>>季节养生</option>
+                <option value="药食同源" <?php echo $topic === '药食同源' ? 'selected' : ''; ?>>药食同源</option>
+                <option value="药用常识" <?php echo $topic === '药用常识' ? 'selected' : ''; ?>>药用常识</option>
+                <option value="园艺观赏" <?php echo $topic === '园艺观赏' ? 'selected' : ''; ?>>园艺观赏</option>
+                <option value="季节养生" <?php echo $topic === '季节养生' ? 'selected' : ''; ?>>季节养生</option>
             </select>
         </div>
         <div class="col-md-2">
@@ -35,13 +36,13 @@ $reco = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </form>
     <div class="mt-4">
-        <?php if($topic==='药食同源'): ?>
+        <?php if ($topic === '药食同源'): ?>
             <div class="alert alert-success">精选食疗知识与本草推荐</div>
-        <?php elseif($topic==='药用常识'): ?>
+        <?php elseif ($topic === '药用常识'): ?>
             <div class="alert alert-success">基础药用常识与安全提示</div>
-        <?php elseif($topic==='园艺观赏'): ?>
+        <?php elseif ($topic === '园艺观赏'): ?>
             <div class="alert alert-success">园艺养护与观赏建议</div>
-        <?php elseif($topic==='季节养生'): ?>
+        <?php elseif ($topic === '季节养生'): ?>
             <div class="alert alert-success">四时养生与节气食疗参考</div>
         <?php else: ?>
             <div class="alert alert-info">选择主题查看对应知识与推荐本草</div>
@@ -50,10 +51,10 @@ $reco = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <div class="mt-4">
         <h4>推荐本草</h4>
         <div class="row mt-3">
-            <?php if(empty($reco)): ?>
+            <?php if (empty($reco)): ?>
                 <div class="col-12 text-muted">暂无推荐</div>
             <?php else: ?>
-                <?php foreach($reco as $herb): ?>
+                <?php foreach ($reco as $herb): ?>
                     <div class="col-md-4 mb-4">
                         <div class="card h-100">
                             <?php $img = isset($herb['image_url']) && $herb['image_url'] ? $herb['image_url'] : 'https://via.placeholder.com/400x200?text=Herb'; ?>
