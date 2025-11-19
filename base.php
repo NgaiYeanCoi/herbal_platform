@@ -11,8 +11,11 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <div class="container">
         <a class="navbar-brand" href="index.php">本草平台</a>
-        <div class="collapse navbar-collapse">
-            <ul class="navbar-nav me-auto">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class=" navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="index.php">首页</a></li>
                 <li class="nav-item"><a class="nav-link" href="herb_list.php">本草库</a></li>
                 <li class="nav-item"><a class="nav-link" href="science.php">科普专区</a></li>
