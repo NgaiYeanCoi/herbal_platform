@@ -57,6 +57,7 @@ $qsBase = [
     <meta charset="UTF-8">
     <title>本草库 - 本草植物平台</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body>
 <?php include 'index.php'; // 复用导航栏 ?>

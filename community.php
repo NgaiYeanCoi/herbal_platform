@@ -10,14 +10,15 @@ if (!file_exists($store)) {
 }
 $errors = [];
 $posted = isset($_GET['posted']) ? 1 : 0;
+$loggedIn = isset($_SESSION['user']);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
-    $content = isset($_POST['content']) ? trim($_POST['content']) : '';
-    if ($name === '' || $content === '') {
-        $errors[] = '请填写昵称和内容';
+    if (!$loggedIn) {
+        $errors[] = '请先登录';
     }
-    if (mb_strlen($name) > 50) {
-        $errors[] = '昵称过长';
+    $name = $loggedIn ? $_SESSION['user']['username'] : '';
+    $content = isset($_POST['content']) ? trim($_POST['content']) : '';
+    if ($content === '') {
+        $errors[] = '请输入内容';
     }
     if (mb_strlen($content) > 500) {
         $errors[] = '内容过长';
@@ -49,6 +50,7 @@ $list = array_reverse($list);
     <meta charset="UTF-8">
     <title>互动社区 - 本草平台</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body>
 <?php include 'index.php'; ?>
@@ -64,17 +66,21 @@ $list = array_reverse($list);
     <?php if($posted): ?>
         <div class="alert alert-success mt-3">发布成功</div>
     <?php endif; ?>
-    <form method="post" class="row g-3 mt-3">
-        <div class="col-md-4">
-            <input type="text" name="name" class="form-control" placeholder="昵称">
-        </div>
-        <div class="col-md-8">
-            <textarea name="content" class="form-control" rows="3" placeholder="分享心得或提问，500字以内"></textarea>
-        </div>
-        <div class="col-12 text-end">
-            <button class="btn btn-success" type="submit">发布</button>
-        </div>
-    </form>
+    <?php if(!$loggedIn): ?>
+        <div class="alert alert-info mt-3">发帖需要登录 <a href="login.php" class="alert-link">去登录</a></div>
+    <?php else: ?>
+        <form method="post" class="row g-3 mt-3">
+            <div class="col-md-4">
+                <input type="text" class="form-control" value="<?php echo htmlspecialchars($_SESSION['user']['username'], ENT_QUOTES, 'UTF-8'); ?>" disabled>
+            </div>
+            <div class="col-md-8">
+                <textarea name="content" class="form-control" rows="3" placeholder="分享心得或提问，500字以内"></textarea>
+            </div>
+            <div class="col-12 text-end">
+                <button class="btn btn-success" type="submit">发布</button>
+            </div>
+        </form>
+    <?php endif; ?>
     <div class="mt-4">
         <h4>最新帖子</h4>
         <?php if(empty($list)): ?>

@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <title>本草植物综合服务平台</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
     <style>
         .hero { background: #f0f7ee; padding: 4rem 0; }
         .user-type { margin: 2rem 0; }
@@ -22,6 +23,15 @@
                 <li class="nav-item"><a class="nav-link" href="science.php">科普专区</a></li>
                 <li class="nav-item"><a class="nav-link" href="community.php">互动社区</a></li>
             </ul>
+            <div class="ms-auto d-flex align-items-center">
+                <?php if(isset($_SESSION['user'])): ?>
+                    <span class="text-white me-3">欢迎，<?php echo htmlspecialchars($_SESSION['user']['username'], ENT_QUOTES, 'UTF-8'); ?></span>
+                    <a class="btn btn-outline-light btn-sm" href="logout.php">退出</a>
+                <?php else: ?>
+                    <a class="btn btn-outline-light btn-sm me-2" href="login.php">登录</a>
+                    <a class="btn btn-light btn-sm" href="register.php">注册</a>
+                <?php endif; ?>
+            </div>
         </div>
     </div>
 </nav>

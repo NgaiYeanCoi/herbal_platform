@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // 数据库配置
 $host = 'localhost';
 $dbname = 'herbal_platform';

@@ -17,9 +17,10 @@ if (!$herb) {
     <meta charset="UTF-8">
     <title><?php echo htmlspecialchars($herb['name'], ENT_QUOTES, 'UTF-8'); ?> - 本草详情</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="styles.css" rel="stylesheet">
 </head>
 <body>
-<?php include 'index.php'; // 复用导航栏 ?>
+<?php include 'index.php'; ?>
 
 <div class="container mt-5">
     <div class="row">
@@ -43,9 +44,26 @@ if (!$herb) {
                 <p><?php echo htmlspecialchars($herb['food_recipe'], ENT_QUOTES, 'UTF-8'); ?></p>
             </div>
 
-            <div class="mt-4 alert alert-info">
-                <h4>专业数据（仅供参考）</h4>
-                <p><strong>性味归经：</strong><?php echo htmlspecialchars($herb['property'], ENT_QUOTES, 'UTF-8'); ?></p>
+            <?php $isPro = isset($_SESSION['user']) && in_array($_SESSION['user']['role'], ['professional','doctor']); ?>
+            <div class="mt-4">
+                <div class="card pro-card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>专业数据</span>
+                        <?php if($isPro): ?>
+                            <span class="badge bg-success">专业视图</span>
+                        <?php else: ?>
+                            <span class="badge bg-secondary">基础视图</span>
+                        <?php endif; ?>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><strong>性味归经：</strong><?php echo htmlspecialchars($herb['property'], ENT_QUOTES, 'UTF-8'); ?></li>
+                        <?php if($isPro): ?>
+                            <li class="list-group-item text-muted">所有信息仅供学习参考，具体用法须遵医嘱</li>
+                        <?php else: ?>
+                            <li class="list-group-item text-muted">登录为专业/医生可查看更多提示</li>
+                        <?php endif; ?>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
