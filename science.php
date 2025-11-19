@@ -17,16 +17,7 @@ $stmt = $pdo->prepare("SELECT * " . $sqlBase . " ORDER BY create_time DESC LIMIT
 $stmt->execute($params);
 $reco = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <title>科普专区 - 本草平台</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
-</head>
-<body>
-<?php include 'index.php'; ?>
+
 <div class="container mt-5">
     <h2>科普专区</h2>
     <form method="get" class="row g-3 mt-3">
@@ -80,5 +71,6 @@ $reco = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </div>
-</body>
-</html>
+<?php
+$pageContent = ob_get_clean();
+include 'base.php';

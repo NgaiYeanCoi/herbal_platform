@@ -1,18 +1,13 @@
-<?php include 'config.php'; ?>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>本草植物综合服务平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>本草平台</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="styles.css" rel="stylesheet">
-    <style>
-        .hero { background: #f0f7ee; padding: 4rem 0; }
-        .user-type { margin: 2rem 0; }
-    </style>
 </head>
 <body>
-<!-- 导航栏 -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-success">
     <div class="container">
         <a class="navbar-brand" href="index.php">本草平台</a>
@@ -35,10 +30,23 @@
         </div>
     </div>
 </nav>
-<!-- 底部信息 -->
-<div class = "container"
 
+<!-- 页面内容插入点 -->
+<div class="container" id="main-content">
+    <?php echo isset($pageContent) ? $pageContent : ''; ?>
+</div>
 
+<footer class="bg-light text-center text-muted py-4 mt-5 border-top">
+    <div class="container">
+        <div>本草植物综合服务平台 &copy; 2025</div>
+        <div>联系邮箱：info@herbal-platform.com | 技术支持：Herbal Team</div>
+        <div class="mt-2">
+            <a href="science.php" class="me-3">科普专区</a>
+            <a href="community.php" class="me-3">互动社区</a>
+            <a href="herb_list.php">本草库</a>
+        </div>
+    </div>
+</footer>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -10,18 +10,8 @@ $herb = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$herb) {
     die("未找到该本草信息");
 }
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <title><?php echo htmlspecialchars($herb['name'], ENT_QUOTES, 'UTF-8'); ?> - 本草详情</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
-</head>
-<body>
-<?php include 'index.php'; ?>
-
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-4">
@@ -68,5 +58,6 @@ if (!$herb) {
         </div>
     </div>
 </div>
-</body>
-</html>
+<?php
+$pageContent = ob_get_clean();
+include 'base.php';

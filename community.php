@@ -43,17 +43,8 @@ if (!is_array($list)) {
     $list = [];
 }
 $list = array_reverse($list);
+ob_start();
 ?>
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <title>互动社区 - 本草平台</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="styles.css" rel="stylesheet">
-</head>
-<body>
-<?php include 'index.php'; ?>
 <div class="container mt-5">
     <h2>互动社区</h2>
     <?php if(!empty($errors)): ?>
@@ -100,5 +91,6 @@ $list = array_reverse($list);
         <?php endif; ?>
     </div>
 </div>
-</body>
-</html>
+<?php
+$pageContent = ob_get_clean();
+include 'base.php';
