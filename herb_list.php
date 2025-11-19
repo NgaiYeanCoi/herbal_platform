@@ -7,6 +7,43 @@ $category = isset($_GET['category']) ? $_GET['category'] : '';
 $sort = isset($_GET['sort']) ? $_GET['sort'] : 'time_desc';
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $perPage = 9;
+$created = isset($_GET['created']) ? 1 : 0;
+$createErrors = [];
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create') {
+    if (!isset($_SESSION['user']) || $_SESSION['user']['user_type'] !== 'admin') {
+        $createErrors[] = '无权限';
+    }
+    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+    $alias = isset($_POST['alias']) ? trim($_POST['alias']) : '';
+    $postCategory = isset($_POST['category']) ? trim($_POST['category']) : '';
+    $origin = isset($_POST['origin']) ? trim($_POST['origin']) : '';
+    $effect = isset($_POST['effect']) ? trim($_POST['effect']) : '';
+    $food_recipe = isset($_POST['food_recipe']) ? trim($_POST['food_recipe']) : '';
+    $property = isset($_POST['property']) ? trim($_POST['property']) : '';
+    $image_url = isset($_POST['image_url']) ? trim($_POST['image_url']) : '';
+    $allowedCats = ['药用','食疗','观赏'];
+    if ($name === '') {
+        $createErrors[] = '请输入名称';
+    }
+    if ($postCategory !== '' && !in_array($postCategory, $allowedCats, true)) {
+        $createErrors[] = '类别不合法';
+    }
+    if (empty($createErrors)) {
+        $ins = $pdo->prepare('INSERT INTO herbs (name, alias, category, origin, effect, food_recipe, property, image_url, create_time) VALUES (:name, :alias, :category, :origin, :effect, :food_recipe, :property, :image_url, NOW())');
+        $ins->execute([
+            ':name' => $name,
+            ':alias' => $alias,
+            ':category' => $postCategory,
+            ':origin' => $origin,
+            ':effect' => $effect,
+            ':food_recipe' => $food_recipe,
+            ':property' => $property,
+            ':image_url' => $image_url
+        ]);
+        header('Location: herb_list.php?created=1');
+        exit;
+    }
+}
 $typeToCategory = [
     'professional' => '药用',
     'doctor' => '药用',
@@ -79,10 +116,77 @@ ob_start();
                     <option value="name_desc" <?php echo $sort==='name_desc'?'selected':''; ?>>名称降序</option>
                 </select>
             </div>
-            <div class="col-md-2">
-                <button class="btn btn-success w-100" type="submit">筛选</button>
+            <div class="col-md-2 d-flex">
+                <?php if(isset($_SESSION['user']) && $_SESSION['user']['user_type'] === 'admin'): ?>
+                    <button class="btn btn-success me-2" type="submit">筛选</button>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addHerbModal">新增</button>
+                    <?php else: ?>
+                <button class="btn btn-success flex-fill me-2" type="submit">筛选</button>
+                <?php endif; ?>
             </div>
         </form>
+        <?php if(!empty($createErrors)): ?>
+            <div class="alert alert-danger mt-2">
+                <?php foreach($createErrors as $e): ?>
+                    <div><?php echo htmlspecialchars($e, ENT_QUOTES, 'UTF-8'); ?></div>
+                <?php endforeach; ?>
+            </div>
+        <?php endif; ?>
+        <?php if($created): ?>
+            <div class="alert alert-success mt-2">新增成功</div>
+        <?php endif; ?>
+        <?php if(isset($_SESSION['user']) && $_SESSION['user']['user_type'] === 'admin'): ?>
+        <div class="modal fade" id="addHerbModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">新增本草</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post">
+                        <input type="hidden" name="action" value="create">
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <input type="text" name="name" class="form-control" placeholder="名称" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" name="alias" class="form-control" placeholder="别名">
+                                </div>
+                                <div class="col-md-6">
+                                    <select name="category" class="form-select">
+                                        <option value="">类别</option>
+                                        <option value="药用">药用</option>
+                                        <option value="食疗">食疗</option>
+                                        <option value="观赏">观赏</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" name="origin" class="form-control" placeholder="产地">
+                                </div>
+                                <div class="col-12">
+                                    <textarea name="effect" class="form-control" rows="3" placeholder="功效说明"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <textarea name="food_recipe" class="form-control" rows="3" placeholder="食疗配方"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <textarea name="property" class="form-control" rows="2" placeholder="性味归经"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <input type="text" name="image_url" class="form-control" placeholder="图片URL">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                            <button type="submit" class="btn btn-primary">保存</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
         <div class="mt-2 text-muted">
             <?php if($keyword !== ''): ?>
                 <span>搜索：<?php echo htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8'); ?></span>

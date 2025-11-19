@@ -48,6 +48,10 @@ ob_start();
                     <ul class="list-group list-group-flush">
                         <?php if($isPro): ?>
                         <li class="list-group-item"><strong>性味归经：</strong><?php echo htmlspecialchars($herb['property'], ENT_QUOTES, 'UTF-8'); ?></li>
+                        <li class="list-group-item"><strong>食疗配方：</strong><?php echo htmlspecialchars($herb['food_recipe'], ENT_QUOTES, 'UTF-8'); ?></li>
+                        <!-- TODO:代补充功能 -->
+                        <!-- <li class="list-group-item"><strong>主治疾病：</strong><?php echo htmlspecialchars($herb['diseases'], ENT_QUOTES, 'UTF-8'); ?></li>
+                        <li class="list-group-item"><strong>注意事项：</strong><?php echo htmlspecialchars($herb['attention'], ENT_QUOTES, 'UTF-8'); ?></li> -->
                             <li class="list-group-item text-muted">所有信息仅供学习参考，具体用法须遵医嘱</li>
                         <?php else: ?>
                             <li class="list-group-item text-muted">登录为专业/医生可查看更多提示</li>
