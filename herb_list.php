@@ -1,4 +1,5 @@
 <?php
+session_start();
 include 'config.php';
 $keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
 $type = isset($_GET['type']) ? $_GET['type'] : '';

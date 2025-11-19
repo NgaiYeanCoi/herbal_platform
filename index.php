@@ -1,3 +1,7 @@
+<?php
+session_start();
+include 'config.php';
+?>
 <body>
 <!-- 搜索区 -->
 <div class="hero text-center" style=" padding: 4rem 0;">

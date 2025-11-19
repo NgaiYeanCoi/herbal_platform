@@ -1,4 +1,5 @@
 <?php
+session_start();
 include 'config.php';
 $storeDir = __DIR__ . DIRECTORY_SEPARATOR . 'data';
 $store = $storeDir . DIRECTORY_SEPARATOR . 'community_posts.json';

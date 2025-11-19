@@ -34,7 +34,7 @@ ob_start();
                 <p><?php echo htmlspecialchars($herb['food_recipe'], ENT_QUOTES, 'UTF-8'); ?></p>
             </div>
 
-            <?php $isPro = isset($_SESSION['user']) && in_array($_SESSION['user']['role'], ['professional','doctor']); ?>
+            <?php $isPro = isset($_SESSION['user']) && in_array($_SESSION['user']['user_type'], ['professional','doctor','admin']); ?>
             <div class="mt-4">
                 <div class="card pro-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
@@ -46,8 +46,8 @@ ob_start();
                         <?php endif; ?>
                     </div>
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><strong>性味归经：</strong><?php echo htmlspecialchars($herb['property'], ENT_QUOTES, 'UTF-8'); ?></li>
                         <?php if($isPro): ?>
+                        <li class="list-group-item"><strong>性味归经：</strong><?php echo htmlspecialchars($herb['property'], ENT_QUOTES, 'UTF-8'); ?></li>
                             <li class="list-group-item text-muted">所有信息仅供学习参考，具体用法须遵医嘱</li>
                         <?php else: ?>
                             <li class="list-group-item text-muted">登录为专业/医生可查看更多提示</li>
