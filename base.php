@@ -18,7 +18,6 @@
             <ul class=" navbar-nav me-auto">
                 <li class="nav-item"><a class="nav-link" href="index.php">首页</a></li>
                 <li class="nav-item"><a class="nav-link" href="herb_list.php">本草库</a></li>
-                <li class="nav-item"><a class="nav-link" href="science.php">科普专区</a></li>
                 <li class="nav-item"><a class="nav-link" href="community.php">互动社区</a></li>
             </ul>
             <div class="ms-auto d-flex align-items-center">
@@ -44,7 +43,6 @@
         <div>本草植物综合服务平台 &copy; 2025</div>
         <div>联系邮箱：info@herbal-platform.com | 技术支持：Herbal Team</div>
         <div class="mt-2">
-            <a href="science.php" class="me-3">科普专区</a>
             <a href="community.php" class="me-3">互动社区</a>
             <a href="herb_list.php">本草库</a>
         </div>
