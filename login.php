@@ -60,6 +60,10 @@ ob_start();
             <label class="form-label">密码</label>
             <input type="password" name="password" class="form-control" required>
         </div>
+         <div class="mb-3">
+            <label class="form-label">验证码</label>
+            <input type="text" name="captcha" class="form-control" required>
+        </div>
         <div class="d-flex justify-content-between align-items-center">
             <button class="btn btn-success" type="submit">登录</button>
             <a href="register.php">没有账户？注册</a>

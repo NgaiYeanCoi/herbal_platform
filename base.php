@@ -23,10 +23,10 @@
             <div class="ms-auto d-flex align-items-center">
                 <?php if(isset($_SESSION['user'])): ?>
                     <span class="text-white me-3">欢迎，<?php echo htmlspecialchars($_SESSION['user']['username'], ENT_QUOTES, 'UTF-8'); ?></span>
-                    <a class="btn btn-outline-light btn-sm" href="logout.php">退出</a>
+                    <a class="btn btn-outline-light btn" href="logout.php">退出</a>
                 <?php else: ?>
-                    <a class="btn btn-outline-light btn-sm me-2" href="login.php">登录</a>
-                    <a class="btn btn-light btn-sm" href="register.php">注册</a>
+                    <a class="btn btn-outline-light btn me-2" href="login.php">登录</a>
+                    <a class="btn btn-light btn" href="register.php">注册</a>
                 <?php endif; ?>
             </div>
         </div>
@@ -40,8 +40,7 @@
 
 <footer class="bg-light text-center text-muted py-4 mt-5 border-top">
     <div class="container">
-        <div>本草植物综合服务平台 &copy; 2025</div>
-        <div>联系邮箱：info@herbal-platform.com | 技术支持：Herbal Team</div>
+        <div>本草植物综合服务平台 Copyright&copy; 2025 | NgaiYeanCoi</div>
         <div class="mt-2">
             <a href="community.php" class="me-3">互动社区</a>
             <a href="herb_list.php">本草库</a>

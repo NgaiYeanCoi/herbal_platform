@@ -8,3 +8,10 @@ body { background-color: #f8faf8; }
 .form-control, .form-select { border-radius: 8px; }
 .page-link { color: #2e7d32; }
 .page-item.active .page-link { background-color: #2e7d32; border-color: #2e7d32; }
+/* herb list image responsive */
+.herb-card-img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}

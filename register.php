@@ -181,7 +181,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         var successModal = new bootstrap.Modal(document.getElementById('registerSuccessModal'));
         successModal.show();
 
-        // 可选：3秒后自动跳转（无需用户点击确认）
+        // 3秒后自动跳转
         setTimeout(function() {
             window.location.href = 'index.php';
         }, 3000);

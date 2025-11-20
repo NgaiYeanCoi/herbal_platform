@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['content'])) {
     }
 }
 
-// 新增：处理删除请求
+// 处理删除请求
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_index'])) {
     if (!$loggedIn) {
         $errors[] = '请先登录';
@@ -130,7 +130,6 @@ ob_start();
         <?php else: ?>
             <div class="list-group mt-2">
                 <?php foreach($list as $key => $p): 
-                    // 计算原始索引（因为list是反转后的，需映射到原始数组的索引）
                     $originalIndex = count($originalList) - 1 - $key;
                 ?>
                     <div class="list-group-item p-3">
@@ -142,7 +141,7 @@ ob_start();
                                 <span class="text-muted small">
                                     <?php echo htmlspecialchars($p['time'], ENT_QUOTES, 'UTF-8'); ?>
                                 </span>
-                                <!-- 删除按钮（带权限校验） -->
+                                <!-- 删除按钮 -->
                             <?php if($loggedIn && (
                                 $p['name'] === $_SESSION['user']['username'] || 
                                 $_SESSION['user']['user_type'] === 'admin'

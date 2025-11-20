@@ -1,0 +1,5 @@
+{
+    "require": {
+            "lifei6671/php-captcha": "0.1.*"
+    }
+}
