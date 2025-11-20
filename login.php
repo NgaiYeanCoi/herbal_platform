@@ -1,5 +1,4 @@
 <?php
-// 1. 开启会话（必须添加，否则无法存储登录状态）
 session_start();
 include 'config.php';
 
@@ -8,28 +7,42 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $username = isset($_POST['username']) ? trim($_POST['username']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
+    $captcha = isset($_POST['captcha']) ? trim($_POST['captcha']) : '';
 
-    if ($username === '' || $password === '') {
-        $errors[] = '请输入用户名和密码';
-    } else {
-        // 2. 修正查询字段：将 password_hash 改为 password（匹配表结构）
-        //    角色字段 role 改为 user_type（与表中字段一致）
+    if (empty($username)) {
+        $errors[] = '请输入用户名';
+    }
+    if (empty($password)) {
+        $errors[] = '请输入密码';
+    }
+    if (empty($captcha)) {
+        $errors[] = '请输入验证码';
+    }
+    if(empty($errors)){
+           // 验证验证码
+        if (!isset($_SESSION['captcha_code']) || strtolower($captcha) !== strtolower($_SESSION['captcha_code'])) {
+            $errors[] = '验证码错误';
+        }
+    }  
+
+    if(empty($errors)){
         $stmt = $pdo->prepare('SELECT id, username, password, user_type FROM users WHERE username = :u LIMIT 1');
         $stmt->execute([':u' => $username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        // 3. 验证密码（使用表中 password 字段的哈希值）
+        // 验证密码（使用表中 password 字段的哈希值）
         if (!$user || !password_verify($password, $user['password'])) {
             $errors[] = '用户名或密码错误';
         } else {
-            // 4. 会话中存储 user_type（而非 role，保持字段一致）
+            // 会话中存储 user_type
             $_SESSION['user'] = [
                 'id' => (int)$user['id'],
                 'username' => $user['username'],
                 'user_type' => $user['user_type'] // 修正为 user_type
             ];
+            
 
-            // 更新最后登录时间（可选增强功能）
+            // 更新最后登录时间
             $updateLogin = $pdo->prepare('UPDATE users SET last_login = NOW() WHERE id = :id');
             $updateLogin->execute([':id' => $user['id']]);
 
@@ -62,7 +75,10 @@ ob_start();
         </div>
          <div class="mb-3">
             <label class="form-label">验证码</label>
-            <input type="text" name="captcha" class="form-control" required>
+            <div class= "d-flex gap-2">
+                <input type="text" name="captcha" class="form-control" required placeholder="请输入验证码">
+                <img src="captcha.php" alt="验证码" style="width:150px; height:50px; cursor:pointer;" onclick="this.src='captcha.php?rand='+Math.random()">
+            </div>
         </div>
         <div class="d-flex justify-content-between align-items-center">
             <button class="btn btn-success" type="submit">登录</button>

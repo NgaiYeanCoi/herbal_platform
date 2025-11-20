@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = isset($_POST['email']) ? trim($_POST['email']) : '';
     $phone = isset($_POST['phone']) ? trim($_POST['phone']) : null; // 可选字段
     $user_type = isset($_POST['user_type']) ? $_POST['user_type'] : 'ordinary';
+    $captcha = isset($_POST['captcha']) ? trim($_POST['captcha']) : '';
 
     // 1. 验证用户类型（匹配枚举值）
     $userTypeWhitelist = ['ordinary', 'professional', 'doctor']; // 排除admin，普通注册不允许
@@ -57,9 +58,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($phone !== null && !empty($phone) && !preg_match('/^1[3-9]\d{9}$/', $phone)) {
         $errors[] = '手机号格式不正确（11位数字）';
     }
+    if(empty($_POST['captcha'])){
+        $errors[] = '请输入验证码';
+    }
+    if(empty($errors)){
+        // 验证验证码
+        if (!isset($_SESSION['captcha_code']) || strtolower($captcha) !== strtolower($_SESSION['captcha_code'])) {
+            $errors[] = '验证码错误';
+        }
+    }
 
-    // 3. 验证唯一性（用户名和邮箱）
-    if (empty($errors)) {
+    if (empty($errors)) {   
         // 检查用户名是否已存在
         $checkUsername = $pdo->prepare('SELECT id FROM users WHERE username = :u');
         $checkUsername->execute([':u' => $username]);
@@ -75,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // 4. 插入用户数据
+    // 插入用户数据
     if (empty($errors)) {
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
         // 插入语句包含表中必填字段（username/password/email/user_type）
@@ -148,7 +157,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <option value="doctor">基层医生</option>
             </select>
         </div>
-
+        <div class="mb-3">
+            <label class="form-label">验证码</label>
+            <div class= "d-flex gap-2">
+                <input type="text" name="captcha" class="form-control" required placeholder="请输入验证码">
+                <img src="captcha.php" alt="验证码" style="width:150px; height:50px; cursor:pointer;" onclick="this.src='captcha.php?rand='+Math.random()">
+            </div>
+        </div>
         <div class="d-flex justify-content-between align-items-center">
             <button class="btn btn-success" type="submit">注册</button>
             <a href="login.php">已有账户？去登录</a>

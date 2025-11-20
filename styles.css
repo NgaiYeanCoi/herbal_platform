@@ -9,9 +9,9 @@ body { background-color: #f8faf8; }
 .page-link { color: #2e7d32; }
 .page-item.active .page-link { background-color: #2e7d32; border-color: #2e7d32; }
 /* herb list image responsive */
-.herb-card-img {
+ .herb-card-img {
   width: 100%;
   height: auto;
   aspect-ratio: 16 / 9;
   object-fit: cover;
-}
+} 

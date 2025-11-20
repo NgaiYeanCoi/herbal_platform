@@ -19,6 +19,12 @@
                 <li class="nav-item"><a class="nav-link" href="index.php">首页</a></li>
                 <li class="nav-item"><a class="nav-link" href="herb_list.php">本草库</a></li>
                 <li class="nav-item"><a class="nav-link" href="community.php">互动社区</a></li>
+                <?php if(isset($_SESSION['user'])): ?>
+                    <?php if($_SESSION['user']['user_type'] === 'admin'): ?>
+                        <!-- TODO: 管理员后台功能 -->
+                        <li class="nav-item"><a class="nav-link" href="#">管理后台</a></li>
+                    <?php endif; ?>
+                <?php endif; ?>
             </ul>
             <div class="ms-auto d-flex align-items-center">
                 <?php if(isset($_SESSION['user'])): ?>
