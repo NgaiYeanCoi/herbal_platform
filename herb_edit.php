@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             ':image_url' => $image_url_final,
             ':id' => $id
         ]);
-        header('Location: herb_edit.php?' . htmlspecialchars(http_build_query(['id' => $id, 'updated' => 1]), ENT_QUOTES, 'UTF-8'));
+        header('Location: herb_edit.php?' . http_build_query(['id' => $id, 'updated' => 1]));
         exit;
     }
     $stmt = $pdo->prepare('SELECT * FROM herbs WHERE id = :id');

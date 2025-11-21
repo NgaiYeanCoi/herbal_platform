@@ -22,7 +22,7 @@
                 <?php if(isset($_SESSION['user'])): ?>
                     <?php if($_SESSION['user']['user_type'] === 'admin'): ?>
                         <!-- TODO: 管理员后台功能 -->
-                        <li class="nav-item"><a class="nav-link" href="#">管理后台</a></li>
+                        <li class="nav-item"><a class="nav-link" href="admin.php">管理后台</a></li>
                     <?php endif; ?>
                 <?php endif; ?>
             </ul>
@@ -30,7 +30,7 @@
                 <?php if(isset($_SESSION['user'])): ?>
                     <span class="text-white me-3">欢迎，<?php echo htmlspecialchars($_SESSION['user']['username'], ENT_QUOTES, 'UTF-8'); ?></span>
                     <!-- TODO：添加个人中心链接 -->
-                    <a class="btn btn-outline-light btn me-2" href="#user_profile.php">个人中心</a>
+                    <a class="btn btn-outline-light btn me-2" href="user_profile.php">个人中心</a>
                     <a class="btn btn-outline-light btn" href="logout.php">退出</a>
                 <?php else: ?>
                     <a class="btn btn-outline-light btn me-2" href="login.php">登录</a>
