@@ -15,7 +15,7 @@ ob_start();
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-4">
-            <?php $img = isset($herb['image_url']) && $herb['image_url'] ? $herb['image_url'] : 'https://via.placeholder.com/600x400?text=Herb'; ?>
+            <?php $img = isset($herb['image_url']) && $herb['image_url'] ? $herb['image_url'] : 'https://placehold.co/600x400?text=404'; ?>
             <img src="<?php echo htmlspecialchars($img, ENT_QUOTES, 'UTF-8'); ?>" class="img-fluid rounded" alt="<?php echo htmlspecialchars($herb['name'], ENT_QUOTES, 'UTF-8'); ?>">
         </div>
         <div class="col-md-8">
@@ -23,15 +23,13 @@ ob_start();
             <p class="text-muted"><strong>别名：</strong><?php echo htmlspecialchars($herb['alias'], ENT_QUOTES, 'UTF-8'); ?></p>
             <p><strong>类别：</strong><?php echo htmlspecialchars($herb['category'], ENT_QUOTES, 'UTF-8'); ?></p>
             <p><strong>产地：</strong><?php echo htmlspecialchars($herb['origin'], ENT_QUOTES, 'UTF-8'); ?></p>
-
             <div class="mt-4">
                 <h4>功效说明</h4>
                 <p><?php echo htmlspecialchars($herb['effect'], ENT_QUOTES, 'UTF-8'); ?></p>
             </div>
-
             <div class="mt-4">
-                <h4>食疗配方</h4>
-                <p><?php echo htmlspecialchars($herb['food_recipe'], ENT_QUOTES, 'UTF-8'); ?></p>
+                <h4>简介</h4>
+                <p><?php echo htmlspecialchars($herb['description'], ENT_QUOTES, 'UTF-8'); ?></p>
             </div>
 
             <?php $isPro = isset($_SESSION['user']) && in_array($_SESSION['user']['user_type'], ['professional','doctor','admin']); ?>
@@ -47,11 +45,10 @@ ob_start();
                     </div>
                     <ul class="list-group list-group-flush">
                         <?php if($isPro): ?>
-                        <li class="list-group-item"><strong>性味归经：</strong><?php echo htmlspecialchars($herb['property'], ENT_QUOTES, 'UTF-8'); ?></li>
-                        <li class="list-group-item"><strong>食疗配方：</strong><?php echo htmlspecialchars($herb['food_recipe'], ENT_QUOTES, 'UTF-8'); ?></li>
+                        <li class="list-group-item"><strong>性味归经：</strong><?php echo htmlspecialchars($herb['property'], ENT_QUOTES, 'UTF-8'); ?></li>  
                         <!-- TODO:代补充功能 -->
-                        <!-- <li class="list-group-item"><strong>主治疾病：</strong><?php echo htmlspecialchars($herb['diseases'], ENT_QUOTES, 'UTF-8'); ?></li>
-                        <li class="list-group-item"><strong>注意事项：</strong><?php echo htmlspecialchars($herb['attention'], ENT_QUOTES, 'UTF-8'); ?></li> -->
+                        <li class="list-group-item"><strong>食疗配方：</strong><?php echo htmlspecialchars($herb['food_recipe'], ENT_QUOTES, 'UTF-8'); ?></li>
+                        <li class="list-group-item"><strong>注意事项：</strong><?php echo htmlspecialchars($herb['attention'], ENT_QUOTES, 'UTF-8'); ?></li>
                             <li class="list-group-item text-muted">所有信息仅供学习参考，具体用法须遵医嘱</li>
                         <?php else: ?>
                             <li class="list-group-item text-muted">登录为专业/医生可查看更多提示</li>

@@ -19,11 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $postCategory = isset($_POST['category']) ? trim($_POST['category']) : '';
     $origin = isset($_POST['origin']) ? trim($_POST['origin']) : '';
     $effect = isset($_POST['effect']) ? trim($_POST['effect']) : '';
+    $description = isset($_POST['description']) ? trim($_POST['description']) : '';
     $food_recipe = isset($_POST['food_recipe']) ? trim($_POST['food_recipe']) : '';
     $property = isset($_POST['property']) ? trim($_POST['property']) : '';
+    $attention = isset($_POST['attention']) ? trim($_POST['attention']) : '';
     $image_url = isset($_POST['image_url']) ? trim($_POST['image_url']) : '';
     $allowedCats = ['药用','食疗','观赏'];
-    if ($name === '') {
+    if (empty($name)) {
         $createErrors[] = '请输入名称';
     }
     if ($postCategory !== '' && !in_array($postCategory, $allowedCats, true)) {
@@ -60,15 +62,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
     }
     if (empty($createErrors)) {
-        $ins = $pdo->prepare('INSERT INTO herbs (name, alias, category, origin, effect, food_recipe, property, image_url, create_time) VALUES (:name, :alias, :category, :origin, :effect, :food_recipe, :property, :image_url, NOW())');
+        $ins = $pdo->prepare('INSERT INTO herbs (name, alias, category, origin, effect, description, food_recipe, property, attention, image_url, create_time) VALUES (:name, :alias, :category, :origin, :effect, :description, :food_recipe, :property, :attention, :image_url, NOW())');
         $ins->execute([
             ':name' => $name,
             ':alias' => $alias,
             ':category' => $postCategory,
             ':origin' => $origin,
             ':effect' => $effect,
+            ':description' => $description,
             ':food_recipe' => $food_recipe,
             ':property' => $property,
+            ':attention' => $attention,
             ':image_url' => $image_url
         ]);
         header('Location: herb_list.php?created=1');
@@ -234,10 +238,16 @@ ob_start();
                                     <textarea name="effect" class="form-control" rows="3" placeholder="功效说明"></textarea>
                                 </div>
                                 <div class="col-12">
+                                    <textarea name="description" class="form-control" rows="3" placeholder="简介"></textarea>
+                                </div>
+                                <div class="col-12">
                                     <textarea name="food_recipe" class="form-control" rows="3" placeholder="食疗配方"></textarea>
                                 </div>
                                 <div class="col-12">
                                     <textarea name="property" class="form-control" rows="2" placeholder="性味归经"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <textarea name="attention" class="form-control" rows="2" placeholder="注意事项"></textarea>
                                 </div>
                                 <div class="col-12">
                                     <input type="text" name="image_url" class="form-control" placeholder="图片URL（可选）">
@@ -275,7 +285,7 @@ ob_start();
             <?php foreach($herbs as $herb): ?>
                 <div class="col-md-4 mb-4">
                     <div class="card h-100">
-                        <?php $img = isset($herb['image_url']) && $herb['image_url'] ? $herb['image_url'] : 'https://via.placeholder.com/400x200?text=Herb'; ?>
+                        <?php $img = isset($herb['image_url']) && $herb['image_url'] ? $herb['image_url'] : 'https://placehold.co/600x400?text=404'; ?>
                         <img src="<?php echo htmlspecialchars($img, ENT_QUOTES, 'UTF-8'); ?>" class="card-img-top herb-card-img" alt="<?php echo htmlspecialchars($herb['name'], ENT_QUOTES, 'UTF-8'); ?>">
                         <div class="card-body">
                             <h5 class="card-title"><?php echo htmlspecialchars($herb['name'], ENT_QUOTES, 'UTF-8'); ?></h5>

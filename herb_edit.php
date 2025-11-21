@@ -27,8 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     $category = isset($_POST['category']) ? trim($_POST['category']) : '';
     $origin = isset($_POST['origin']) ? trim($_POST['origin']) : '';
     $effect = isset($_POST['effect']) ? trim($_POST['effect']) : '';
+    $description = isset($_POST['description']) ? trim($_POST['description']) : '';
     $food_recipe = isset($_POST['food_recipe']) ? trim($_POST['food_recipe']) : '';
     $property = isset($_POST['property']) ? trim($_POST['property']) : '';
+    $attention = isset($_POST['attention']) ? trim($_POST['attention']) : '';
     $image_url_input = isset($_POST['image_url']) ? trim($_POST['image_url']) : '';
     $allowedCats = ['药用','食疗','观赏'];
     if ($name === '') {
@@ -72,15 +74,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         $image_url_final = $herb['image_url'];
     }
     if (empty($errors)) {
-        $upd = $pdo->prepare('UPDATE herbs SET name = :name, alias = :alias, category = :category, origin = :origin, effect = :effect, food_recipe = :food_recipe, property = :property, image_url = :image_url WHERE id = :id');
+        $upd = $pdo->prepare('UPDATE herbs SET name = :name, alias = :alias, category = :category, origin = :origin, effect = :effect, description = :description, food_recipe = :food_recipe, property = :property, attention = :attention, image_url = :image_url WHERE id = :id');
         $upd->execute([
             ':name' => $name,
             ':alias' => $alias,
             ':category' => $category,
             ':origin' => $origin,
             ':effect' => $effect,
+            ':description' => $description,
             ':food_recipe' => $food_recipe,
             ':property' => $property,
+            ':attention' => $attention,
             ':image_url' => $image_url_final,
             ':id' => $id
         ]);
@@ -110,7 +114,7 @@ ob_start();
     <?php endif; ?>
     <div class="row g-4 mt-2">
         <div class="col-md-4">
-            <?php $img = isset($herb['image_url']) && $herb['image_url'] ? $herb['image_url'] : 'https://via.placeholder.com/400x300?text=Herb'; ?>
+            <?php $img = isset($herb['image_url']) && $herb['image_url'] ? $herb['image_url'] : 'https://placehold.co/600x400?text=404'; ?>
             <img src="<?php echo htmlspecialchars($img, ENT_QUOTES, 'UTF-8'); ?>" class="img-fluid rounded border" alt="<?php echo htmlspecialchars($herb['name'], ENT_QUOTES, 'UTF-8'); ?>">
         </div>
         <div class="col-md-8">
@@ -142,12 +146,20 @@ ob_start();
                     <textarea name="effect" class="form-control" rows="3"><?php echo htmlspecialchars($herb['effect'], ENT_QUOTES, 'UTF-8'); ?></textarea>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">食疗配方</label>
+                    <label class="form-label">简介</label>
+                    <textarea name="description" class="form-control" rows="3"><?php echo htmlspecialchars($herb['description'], ENT_QUOTES, 'UTF-8'); ?></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">食疗配方（专业数据）</label>
                     <textarea name="food_recipe" class="form-control" rows="3"><?php echo htmlspecialchars($herb['food_recipe'], ENT_QUOTES, 'UTF-8'); ?></textarea>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">性味归经</label>
+                    <label class="form-label">性味归经（专业数据）</label>
                     <textarea name="property" class="form-control" rows="2"><?php echo htmlspecialchars($herb['property'], ENT_QUOTES, 'UTF-8'); ?></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">注意事项（专业数据）</label>
+                    <textarea name="attention" class="form-control" rows="2"><?php echo htmlspecialchars($herb['attention'], ENT_QUOTES, 'UTF-8'); ?></textarea>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">图片URL（可选）</label>

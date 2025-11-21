@@ -29,6 +29,8 @@
             <div class="ms-auto d-flex align-items-center">
                 <?php if(isset($_SESSION['user'])): ?>
                     <span class="text-white me-3">欢迎，<?php echo htmlspecialchars($_SESSION['user']['username'], ENT_QUOTES, 'UTF-8'); ?></span>
+                    <!-- TODO：添加个人中心链接 -->
+                    <a class="btn btn-outline-light btn me-2" href="#user_profile.php">个人中心</a>
                     <a class="btn btn-outline-light btn" href="logout.php">退出</a>
                 <?php else: ?>
                     <a class="btn btn-outline-light btn me-2" href="login.php">登录</a>
