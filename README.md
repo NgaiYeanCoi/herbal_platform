@@ -7,6 +7,19 @@
 - 搜索功能：快速查找所需本草信息
 - 管理员后台：管理用户账号及权限
 - 验证码安全机制：登录、注册、个人信息修改时的验证码验证
+## 效果
+### index.php
+![图片](images/127.0.0.1_8080_project_PHP_herbal_demo_index.php.png)
+### login.php
+![图片](images/127.0.0.1_8080_project_PHP_herbal_demo_login.php.png)
+### herb_list.php
+![图片](images/127.0.0.1_8080_project_PHP_herbal_demo_herb_list.php.png)
+### user_profile.php
+![图片](images/127.0.0.1_8080_project_PHP_herbal_demo_user_profile.php.png)
+### herb_detail.php
+![图片](images/127.0.0.1_8080_project_PHP_herbal_demo_herb_detail.php_id=9.png)
+### community.php
+![图片](images/127.0.0.1_8080_project_PHP_herbal_demo_community.php.png)
 ## 环境要求
 - PHP 7.4+
 - MySQL 5.7+
@@ -88,3 +101,11 @@
 - herb_detail.php：本草详情页，展示详细信息
 - captcha.php：验证码生成逻辑，依赖 lifei6671/php-captcha
 - config.php：数据库配置文件
+- logout.php：退出登录
+- user_profile.php：用户个人信息页
+- herb_edit.php：本草信息编辑页（管理员）
+- community.php：用户社区
+- base.php：基础布局文件，包含导航栏、页脚等
+
+# 许可证
+本项目基于 MIT 许可证开源，你可以在遵守许可证条款的前提下自由使用、修改和分发本项目的代码。
