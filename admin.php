@@ -159,7 +159,6 @@ ob_start();
                         <div class="modal-body">
                             <input type="hidden" name="action" value="edit">
                             <input type="hidden" name="user_id" value="<?php echo (int)$user['id']; ?>">
-                            
                             <div class="mb-3">
                                 <label class="form-label">用户类型</label>
                                 <select name="user_type" class="form-select" required>
