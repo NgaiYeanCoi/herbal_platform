@@ -1,8 +1,6 @@
 # 屏蔽 IDEA 配置目录（JetBrains 系列 IDE 生成）
 .idea/
 
-# 屏蔽项目数据目录（存储 JSON 帖子数据）
-data/
 
 # 补充 PHP 项目常用屏蔽项（可选，提升实用性）
 # Composer 依赖目录
@@ -37,3 +35,4 @@ php.ini.bak
 # 编译生成的文件
 *.phpc
 *.phtml~
+data/community_posts.json
