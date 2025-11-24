@@ -51,27 +51,11 @@
       - 用户表 users 在首次访问 register.php 时自动创建
   
 4. 新建数据库
-   - 在 MySQL 中新建一个数据库，`herbal_platform`、用户表 `users`、本草表 `herbs`
+   - 在 MySQL 中新建一个数据库，`herbal_platform`、本草表 `herbs`
         ```sql
         -- 创建数据库并设置字符集
         CREATE DATABASE IF NOT EXISTS herbal_platform DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
         USE herbal_platform;
-        CREATE TABLE IF NOT EXISTS `users` (
-                                            `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '用户ID',
-                                            `username` varchar(50) NOT NULL COMMENT '用户名（唯一）',
-                                            `password` varchar(255) NOT NULL COMMENT '密码（加密存储）',
-                                            `email` varchar(100) NOT NULL COMMENT '邮箱（唯一）',
-                                            `phone` varchar(20) DEFAULT NULL COMMENT '手机号',
-                                            `user_type` enum('ordinary','professional','doctor','admin') DEFAULT 'ordinary' COMMENT '用户类型',
-                                            `avatar` varchar(500) DEFAULT '' COMMENT '头像URL',
-                                            `created_at` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '注册时间',
-                                            `updated_at` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-                                            `last_login` datetime DEFAULT NULL COMMENT '最后登录时间',
-                                            PRIMARY KEY (`id`),
-                                            UNIQUE KEY `uk_username` (`username`),
-                                            UNIQUE KEY `uk_email` (`email`),
-                                            KEY `idx_user_type` (`user_type`)
-        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户信息表';
         CREATE TABLE IF NOT EXISTS `herbs` (
                                             `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '本草ID',
                                             `name` varchar(100) NOT NULL COMMENT '本草名称',
@@ -90,9 +74,8 @@
                                             KEY `idx_name` (`name`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='本草植物信息表';
         ```
-    1. 配置管理员账户
-       1. 在网页按照提示注册一个用户
-       2. 在 `users` 表中修改一条记录，将 `user_type` 设置为 `admin`，即可创建管理员账户
+5. 配置管理员账户
+   - 初次访问 register.php 时，注册一个用户，即可创建管理员账户
 ## 主要文件说明
 - index.php：首页，展示本草推荐、分类导航
 - login.php/register.php：用户登录与注册

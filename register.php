@@ -22,32 +22,49 @@ $pdo->exec('CREATE TABLE IF NOT EXISTS `users` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT=\'用户信息表\'');
 
 $errors = [];
-
+$emptyAdmin = true;
+if($emptyAdmin){
+    // 检查是否存在管理员用户
+    $stmt = $pdo->query('SELECT COUNT(*) FROM `users` WHERE `user_type` = \'admin\'');
+    $adminCount = $stmt->fetchColumn();
+    if ($adminCount === 1) {
+        $emptyAdmin = false;
+    }
+}
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // 获取表单数据并过滤
     $username = isset($_POST['username']) ? trim($_POST['username']) : '';
     $password = isset($_POST['password']) ? $_POST['password'] : '';
+    $confirm_password = isset($_POST['confirm_password']) ? $_POST['confirm_password'] : '';
     $email = isset($_POST['email']) ? trim($_POST['email']) : '';
     $phone = isset($_POST['phone']) ? trim($_POST['phone']) : null; // 可选字段
     $user_type = isset($_POST['user_type']) ? $_POST['user_type'] : 'ordinary';
     $captcha = isset($_POST['captcha']) ? trim($_POST['captcha']) : '';
 
     // 1. 验证用户类型（匹配枚举值）
-    $userTypeWhitelist = ['ordinary', 'professional', 'doctor']; // 排除admin，普通注册不允许
-    if (!in_array($user_type, $userTypeWhitelist, true)) {
+    if($emptyAdmin){ // 若不存在管理员用户，仅允许admin注册
+        $user_type = 'admin';
+    }
+    else{
+        $userTypeWhitelist = ['ordinary', 'professional', 'doctor']; // 排除admin，普通注册不允许
+        if (!in_array($user_type, $userTypeWhitelist, true)) {
         $user_type = 'ordinary';
     }
-
+    }
     // 2. 表单验证
-    if (empty($username) || empty($password) || empty($email)) {
+    if (empty($username) || empty($password) || empty($email) || empty($confirm_password)) {
         $errors[] = '用户名、密码和邮箱为必填项';
+    }
+    // 确认密码是否与密码一致
+    if($password !== $_POST['confirm_password']){
+        $errors[] = '两次输入密码不一致';
     }
     // 用户名格式：3-20位，仅含字母、数字、下划线
     if (!preg_match('/^[a-zA-Z0-9_]{3,20}$/', $username)) {
         $errors[] = '用户名需3-20位，仅含字母、数字或下划线';
     }
     // 密码长度
-    if (strlen($password) < 6) {
+    if (strlen($password) < 6 ) {
         $errors[] = '密码长度不少于6位';
     }
     // 邮箱格式验证
@@ -123,6 +140,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php endforeach; ?>
         </div>
     <?php endif; ?>
+    <?php if($emptyAdmin): ?>
+        <div class="alert alert-danger mt-3">
+                <div>当前系统中无管理员用户，仅可注册管理员用户</div>
+        </div>
+    <?php endif; ?>
 
     <form method="post" class="mt-3">
         <div class="mb-3">
@@ -136,7 +158,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="password" name="password" class="form-control" required
                    placeholder="不少于6位">
         </div>
-
+        <div class="mb-3">
+            <label class="form-label">确认密码 <span class="text-danger">*</span></label>
+            <input type="password" name="confirm_password" class="form-control" required
+                   placeholder="重新输入一遍密码">
+        </div>
         <div class="mb-3">
             <label class="form-label">邮箱 <span class="text-danger">*</span></label>
             <input type="email" name="email" class="form-control" required
@@ -148,14 +174,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="tel" name="phone" class="form-control"
                    placeholder="11位数字，如：13800138000">
         </div>
-
         <div class="mb-3">
             <label class="form-label">用户类型 <span class="text-danger">*</span></label>
+            <?php if($emptyAdmin): ?>
+            <select name="user_type" class="form-select" required disabled>
+                <option value="admin">管理员用户</option>
+            </select>
+            <?php else: ?>
             <select name="user_type" class="form-select" required>
                 <option value="ordinary">普通用户</option>
                 <option value="professional">专业学习者</option>
                 <option value="doctor">基层医生</option>
             </select>
+            <?php endif; ?>
         </div>
         <div class="mb-3">
             <label class="form-label">验证码</label>
