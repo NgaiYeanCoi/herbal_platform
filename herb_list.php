@@ -1,349 +1,327 @@
 <?php
 session_start();
 include 'config.php';
-$keyword = isset($_GET['keyword']) ? trim($_GET['keyword']) : '';
-$type = isset($_GET['type']) ? $_GET['type'] : '';
-$category = isset($_GET['category']) ? $_GET['category'] : '';
-$sort = isset($_GET['sort']) ? $_GET['sort'] : 'time_desc';
-$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
-$perPage = 6;
-$deleted = isset($_GET['deleted']) ? 1 : 0;
-$created = isset($_GET['created']) ? 1 : 0;
-$createErrors = [];
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create') {
-    if (!isset($_SESSION['user']) || $_SESSION['user']['user_type'] !== 'admin') {
-        $createErrors[] = '无权限';
-    }
-    $name = isset($_POST['name']) ? trim($_POST['name']) : '';
-    $alias = isset($_POST['alias']) ? trim($_POST['alias']) : '';
-    $postCategory = isset($_POST['category']) ? trim($_POST['category']) : '';
-    $origin = isset($_POST['origin']) ? trim($_POST['origin']) : '';
-    $effect = isset($_POST['effect']) ? trim($_POST['effect']) : '';
-    $description = isset($_POST['description']) ? trim($_POST['description']) : '';
-    $food_recipe = isset($_POST['food_recipe']) ? trim($_POST['food_recipe']) : '';
-    $property = isset($_POST['property']) ? trim($_POST['property']) : '';
-    $attention = isset($_POST['attention']) ? trim($_POST['attention']) : '';
-    $image_url = isset($_POST['image_url']) ? trim($_POST['image_url']) : '';
-    $allowedCats = ['药用','食疗','观赏'];
-    if (empty($name)) {
-        $createErrors[] = '请输入名称';
-    }
-    if ($postCategory !== '' && !in_array($postCategory, $allowedCats, true)) {
-        $createErrors[] = '类别不合法';
-    }
-    if (isset($_FILES['image_file']) && isset($_FILES['image_file']['tmp_name']) && $_FILES['image_file']['error'] === UPLOAD_ERR_OK) {
-        $tmp = $_FILES['image_file']['tmp_name'];
-        $size = (int)$_FILES['image_file']['size'];
-        $nameOrig = $_FILES['image_file']['name'];
-        $ext = strtolower(pathinfo($nameOrig, PATHINFO_EXTENSION));
-        $allowedExt = ['jpg','jpeg','png','gif','webp'];
-        if (!in_array($ext, $allowedExt, true)) {
-            $createErrors[] = '图片格式不支持';
-        }
-        if ($size > 2 * 1024 * 1024) {
-            $createErrors[] = '图片大小超过2MB';
-        }
-        $info = @getimagesize($tmp);
-        if ($info === false) {
-            $createErrors[] = '文件不是有效图片';
-        }
-        if (empty($createErrors)) {
-            $dir = __DIR__ . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'herbs';
-            if (!is_dir($dir)) {
-                mkdir($dir, 0777, true);
-            }
-            $filename = uniqid('herb_', true) . '.' . $ext;
-            $dest = $dir . DIRECTORY_SEPARATOR . $filename;
-            if (!move_uploaded_file($tmp, $dest)) {
-                $createErrors[] = '图片保存失败';
-            } else {
-                $image_url = 'uploads/herbs/' . $filename;
-            }
-        }
-    }
-    if (empty($createErrors)) {
-        $ins = $pdo->prepare('INSERT INTO herbs (name, alias, category, origin, effect, description, food_recipe, property, attention, image_url, create_time) VALUES (:name, :alias, :category, :origin, :effect, :description, :food_recipe, :property, :attention, :image_url, NOW())');
-        $ins->execute([
-            ':name' => $name,
-            ':alias' => $alias,
-            ':category' => $postCategory,
-            ':origin' => $origin,
-            ':effect' => $effect,
-            ':description' => $description,
-            ':food_recipe' => $food_recipe,
-            ':property' => $property,
-            ':attention' => $attention,
-            ':image_url' => $image_url
-        ]);
-        header('Location: herb_list.php?created=1');
-        exit;
-    }
-}
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'delete') {
-    $deleteErrors = [];
-    if (!isset($_SESSION['user']) || $_SESSION['user']['user_type'] !== 'admin') {
-        $deleteErrors[] = '无权限';
-    }
-    $delId = isset($_POST['id']) ? (int)$_POST['id'] : 0;
-    if ($delId <= 0) {
-        $deleteErrors[] = '参数错误';
-    }
-    if (empty($deleteErrors)) {
-        $imgStmt = $pdo->prepare('SELECT image_url FROM herbs WHERE id = :id');
-        $imgStmt->execute([':id' => $delId]);
-        $row = $imgStmt->fetch(PDO::FETCH_ASSOC);
-        if ($row && isset($row['image_url']) && $row['image_url'] !== '' && strpos($row['image_url'], 'uploads/herbs/') === 0) {
-            $filePath = __DIR__ . DIRECTORY_SEPARATOR . $row['image_url'];
-            if (is_file($filePath)) {
-                @unlink($filePath);
-            }
-        }
-        $delStmt = $pdo->prepare('DELETE FROM herbs WHERE id = :id');
-        $delStmt->execute([':id' => $delId]);
-        header('Location: herb_list.php?deleted=1');
-        exit;
-    }
-}
+
+$type = isset($_GET['type']) ? trim($_GET['type']) : '';
+$initialFilters = [
+    'keyword' => isset($_GET['keyword']) ? trim($_GET['keyword']) : '',
+    'category' => isset($_GET['category']) ? trim($_GET['category']) : '',
+    'sort' => isset($_GET['sort']) ? $_GET['sort'] : 'time_desc',
+    'page' => isset($_GET['page']) ? max(1, (int) $_GET['page']) : 1,
+    'pageSize' => isset($_GET['pageSize']) ? max(1, min(20, (int) $_GET['pageSize'])) : 6,
+];
+
 $typeToCategory = [
     'professional' => '药用',
     'doctor' => '药用',
     'public' => '食疗',
-    'culture' => '观赏'
+    'culture' => '观赏',
 ];
-if ($category === '' && $type !== '' && isset($typeToCategory[$type])) {
-    $category = $typeToCategory[$type];
+
+if ($initialFilters['category'] === '' && $type !== '' && isset($typeToCategory[$type])) {
+    $initialFilters['category'] = $typeToCategory[$type];
 }
-$sqlBase = "FROM herbs WHERE 1=1";
-$params = [];
-if ($keyword !== '') {
-    $sqlBase .= " AND (name LIKE :keyword OR alias LIKE :keyword OR effect LIKE :keyword)";
-    $params[':keyword'] = "%$keyword%";
-}
-if ($category !== '') {
-    $sqlBase .= " AND category = :category";
-    $params[':category'] = $category;
-}
-$sortWhitelist = [
-    'name_asc' => 'name ASC',
-    'name_desc' => 'name DESC',
-    'time_desc' => 'create_time DESC',
-    'time_asc' => 'create_time ASC'
+
+$initialFilters['type'] = $type;
+$isAdmin = isset($_SESSION['user']) && $_SESSION['user']['user_type'] === 'admin';
+
+$frontendConfig = [
+    'apiBase' => 'api/herbs.php',
+    'xslPath' => 'xml/herbs-table.xsl',
+    'isAdmin' => $isAdmin,
+    'initialFilters' => $initialFilters,
 ];
-$orderBy = isset($sortWhitelist[$sort]) ? $sortWhitelist[$sort] : $sortWhitelist['time_desc'];
-$countStmt = $pdo->prepare("SELECT COUNT(*) " . $sqlBase);
-$countStmt->execute($params);
-$total = (int)$countStmt->fetchColumn();
-$totalPages = max(1, (int)ceil($total / $perPage));
-if ($page > $totalPages) {
-    $page = $totalPages;
-}
-$offset = ($page - 1) * $perPage;
-$listSql = "SELECT * " . $sqlBase . " ORDER BY " . $orderBy . " LIMIT " . (int)$perPage . " OFFSET " . (int)$offset;
-$stmt = $pdo->prepare($listSql);
-$stmt->execute($params);
-$herbs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-$qsBase = [
-    'keyword' => $keyword,
-    'category' => $category,
-    'sort' => $sort,
-    'type' => $type
-];
+
 ob_start();
 ?>
-<div class="container mt-5">
-    <h2>本草列表</h2>
-    <div class="mt-3">
-        <form method="get" class="row g-3">
-            <?php if($type !== ''): ?>
-                <input type="hidden" name="type" value="<?php echo htmlspecialchars($type, ENT_QUOTES, 'UTF-8'); ?>">
-            <?php endif; ?>
-            <div class="col-md-4">
-                <input type="text" name="keyword" class="form-control" placeholder="输入植物名称、功效..." value="<?php echo htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8'); ?>">
-            </div>
-            <div class="col-md-3">
-                <select name="category" class="form-select">
-                    <option value="">全部类别</option>
-                    <option value="药用" <?php echo $category==='药用'?'selected':''; ?>>药用</option>
-                    <option value="食疗" <?php echo $category==='食疗'?'selected':''; ?>>食疗</option>
-                    <option value="观赏" <?php echo $category==='观赏'?'selected':''; ?>>观赏</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <select name="sort" class="form-select">
-                    <option value="time_desc" <?php echo $sort==='time_desc'?'selected':''; ?>>最新发布</option>
-                    <option value="time_asc" <?php echo $sort==='time_asc'?'selected':''; ?>>最早发布</option>
-                    <option value="name_asc" <?php echo $sort==='name_asc'?'selected':''; ?>>名称升序</option>
-                    <option value="name_desc" <?php echo $sort==='name_desc'?'selected':''; ?>>名称降序</option>
-                </select>
-            </div>
-            <div class="col-md-2 d-flex">
-                <?php if(isset($_SESSION['user']) && $_SESSION['user']['user_type'] === 'admin'): ?>
-                    <button class="btn btn-success me-2" type="submit">筛选</button>
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addHerbModal">新增</button>
-                    <?php else: ?>
-                <button class="btn btn-success flex-fill me-2" type="submit">筛选</button>
-                <?php endif; ?>
-            </div>
-        </form>
-        <?php if(!empty($createErrors)): ?>
-            <div class="alert alert-danger mt-2">
-                <?php foreach($createErrors as $e): ?>
-                    <div><?php echo htmlspecialchars($e, ENT_QUOTES, 'UTF-8'); ?></div>
-                <?php endforeach; ?>
-            </div>
+<div class="container mt-5" id="herbXmlApp" data-config="<?php echo htmlspecialchars(json_encode($frontendConfig, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), ENT_QUOTES, 'UTF-8'); ?>">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div>
+            <h2 class="mb-1">本草列表</h2>
+            <p class="text-muted mb-0">基于 XML 存储 + AJAX 的数据浏览与维护</p>
+        </div>
+        <?php if ($isAdmin): ?>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addHerbModal">
+                <i class="bi bi-plus-circle me-1"></i> 新增本草
+            </button>
         <?php endif; ?>
-        <?php if($created): ?>
-            <div class="alert alert-success mt-2">新增成功</div>
+    </div>
+
+    <div id="alertPlaceholder" class="mt-3"></div>
+
+    <form id="filterForm" class="row g-3 align-items-end mt-1">
+        <?php if ($type !== ''): ?>
+            <input type="hidden" name="type" value="<?php echo htmlspecialchars($type, ENT_QUOTES, 'UTF-8'); ?>">
         <?php endif; ?>
-        <?php if(isset($deleteErrors) && !empty($deleteErrors)): ?>
-            <div class="alert alert-danger mt-2">
-                <?php foreach($deleteErrors as $e): ?>
-                    <div><?php echo htmlspecialchars($e, ENT_QUOTES, 'UTF-8'); ?></div>
-                <?php endforeach; ?>
-            </div>
-        <?php endif; ?>
-        <?php if($deleted): ?>
-            <div class="alert alert-success mt-2">删除成功</div>
-        <?php endif; ?>
-        <?php if(isset($_SESSION['user']) && $_SESSION['user']['user_type'] === 'admin'): ?>
-        <div class="modal fade" id="addHerbModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">新增本草</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <form method="post" enctype="multipart/form-data">
-                        <input type="hidden" name="action" value="create">
-                        <div class="modal-body">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <input type="text" name="name" class="form-control" placeholder="名称" required>
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="text" name="alias" class="form-control" placeholder="别名">
-                                </div>
-                                <div class="col-md-6">
-                                    <select name="category" class="form-select">
-                                        <option value="">类别</option>
-                                        <option value="药用">药用</option>
-                                        <option value="食疗">食疗</option>
-                                        <option value="观赏">观赏</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-6">
-                                    <input type="text" name="origin" class="form-control" placeholder="产地">
-                                </div>
-                                <div class="col-12">
-                                    <textarea name="effect" class="form-control" rows="3" placeholder="功效说明"></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <textarea name="description" class="form-control" rows="3" placeholder="简介"></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <textarea name="food_recipe" class="form-control" rows="3" placeholder="食疗配方"></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <textarea name="property" class="form-control" rows="2" placeholder="性味归经"></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <textarea name="attention" class="form-control" rows="2" placeholder="注意事项"></textarea>
-                                </div>
-                                <div class="col-12">
-                                    <input type="text" name="image_url" class="form-control" placeholder="图片URL（可选）">
-                                </div>
-                                <div class="col-12">
-                                    <input type="file" name="image_file" accept="image/*" class="form-control">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                            <button type="submit" class="btn btn-primary">保存</button>
-                        </div>
-                    </form>
+        <div class="col-md-4">
+            <label for="keywordInput" class="form-label">关键词</label>
+            <input type="text" id="keywordInput" name="keyword" class="form-control" placeholder="输入植物名称、功效..." value="<?php echo htmlspecialchars($initialFilters['keyword'], ENT_QUOTES, 'UTF-8'); ?>">
+        </div>
+        <div class="col-md-3">
+            <label for="categorySelect" class="form-label">类别</label>
+            <select id="categorySelect" name="category" class="form-select">
+                <option value="">全部类别</option>
+                <option value="药用" <?php echo $initialFilters['category'] === '药用' ? 'selected' : ''; ?>>药用</option>
+                <option value="食疗" <?php echo $initialFilters['category'] === '食疗' ? 'selected' : ''; ?>>食疗</option>
+                <option value="观赏" <?php echo $initialFilters['category'] === '观赏' ? 'selected' : ''; ?>>观赏</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label for="sortSelect" class="form-label">排序</label>
+            <select id="sortSelect" name="sort" class="form-select">
+                <option value="time_desc" <?php echo $initialFilters['sort'] === 'time_desc' ? 'selected' : ''; ?>>最新发布</option>
+                <option value="time_asc" <?php echo $initialFilters['sort'] === 'time_asc' ? 'selected' : ''; ?>>最早发布</option>
+                <option value="name_asc" <?php echo $initialFilters['sort'] === 'name_asc' ? 'selected' : ''; ?>>名称升序</option>
+                <option value="name_desc" <?php echo $initialFilters['sort'] === 'name_desc' ? 'selected' : ''; ?>>名称降序</option>
+            </select>
+        </div>
+        <div class="col-md-1">
+            <label for="pageSizeInput" class="form-label">每页</label>
+            <input type="number" id="pageSizeInput" name="pageSize" class="form-control" min="1" max="20" value="<?php echo (int) $initialFilters['pageSize']; ?>">
+        </div>
+        <div class="col-md-1 d-grid">
+            <button type="submit" class="btn btn-success">筛选</button>
+        </div>
+    </form>
+
+    <div class="mt-2 text-muted" id="filterSummary"></div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-white">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <h5 class="mb-0">XSL Table 视图</h5>
+                    <small class="text-muted">直接读取 XML 并按指定字段排序浏览</small>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <select id="xslSortField" class="form-select form-select-sm">
+                        <option value="price" data-type="numeric">价格</option>
+                        <option value="name" data-type="text">名称</option>
+                        <option value="category" data-type="text">类别</option>
+                        <option value="stock" data-type="numeric">库存</option>
+                    </select>
+                    <select id="xslSortOrder" class="form-select form-select-sm">
+                        <option value="ascending">升序</option>
+                        <option value="descending">降序</option>
+                    </select>
+                    <button class="btn btn-outline-success btn-sm" id="refreshXslBtn">刷新</button>
                 </div>
             </div>
         </div>
-        <?php endif; ?>
-        <div class="mt-2 text-muted">
-            <?php if($keyword !== ''): ?>
-                <span>搜索：<?php echo htmlspecialchars($keyword, ENT_QUOTES, 'UTF-8'); ?></span>
-            <?php endif; ?>
-            <?php if($category !== ''): ?>
-                <span class="ms-3">类别：<?php echo htmlspecialchars($category, ENT_QUOTES, 'UTF-8'); ?></span>
-            <?php endif; ?>
-            <span class="ms-3">共 <?php echo (int)$total; ?> 条</span>
+        <div class="card-body">
+            <div id="xslTableContainer" class="table-responsive text-center text-muted">
+                正在加载 XML 视图...
+            </div>
         </div>
     </div>
-    <div class="row mt-4">
-        <?php if(empty($herbs)): ?>
-            <div class="col-12 text-center py-5">
-                <p>未找到相关本草，请尝试其他关键词</p>
-            </div>
-        <?php else: ?>
-            <?php foreach($herbs as $herb): ?>
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <?php $img = isset($herb['image_url']) && $herb['image_url'] ? $herb['image_url'] : 'https://placehold.co/600x400?text=404'; ?>
-                        <img src="<?php echo htmlspecialchars($img, ENT_QUOTES, 'UTF-8'); ?>" class="card-img-top herb-card-img" alt="<?php echo htmlspecialchars($herb['name'], ENT_QUOTES, 'UTF-8'); ?>">
-                        <div class="card-body">
-                            <h5 class="card-title"><?php echo htmlspecialchars($herb['name'], ENT_QUOTES, 'UTF-8'); ?></h5>
-                            <p class="card-text text-muted"><?php echo htmlspecialchars($herb['alias'], ENT_QUOTES, 'UTF-8'); ?></p>
-                            <p class="card-text"><?php echo htmlspecialchars(mb_substr($herb['effect'], 0, 60), ENT_QUOTES, 'UTF-8'); ?>...</p>
-                            <a href="herb_detail.php?<?php echo htmlspecialchars(http_build_query(['id' => (int)$herb['id']]), ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-success">查看详情</a>
-                            <?php if(isset($_SESSION['user']) && $_SESSION['user']['user_type'] === 'admin'): ?>
-                            <a href="herb_edit.php?<?php echo htmlspecialchars(http_build_query(['id' => (int)$herb['id']]), ENT_QUOTES, 'UTF-8'); ?>" class="btn btn-warning">编辑</a>
-                            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal<?php echo (int)$herb['id']; ?>">删除</button>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">XPath 精准/模糊查询</h5>
+        </div>
+        <div class="card-body">
+            <form id="searchForm" class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label class="form-label">字段</label>
+                    <select name="field" class="form-select">
+                        <option value="name">name</option>
+                        <option value="alias">alias</option>
+                        <option value="category">category</option>
+                        <option value="origin">origin</option>
+                        <option value="effect">effect</option>
+                    </select>
                 </div>
-                <?php if(isset($_SESSION['user']) && $_SESSION['user']['user_type'] === 'admin'): ?>
-                <div class="modal fade" id="deleteModal<?php echo (int)$herb['id']; ?>" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">确认删除</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <form method="post">
-                                <input type="hidden" name="action" value="delete">
-                                <input type="hidden" name="id" value="<?php echo (int)$herb['id']; ?>">
-                                <div class="modal-body">
-                                    确定删除 “<?php echo htmlspecialchars($herb['name'], ENT_QUOTES, 'UTF-8'); ?>”？
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                    <button type="submit" class="btn btn-danger">删除</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
+                <div class="col-md-3">
+                    <label class="form-label">模式</label>
+                    <select name="mode" class="form-select">
+                        <option value="fuzzy">模糊</option>
+                        <option value="exact">精确</option>
+                    </select>
                 </div>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        <?php endif; ?>
+                <div class="col-md-4">
+                    <label class="form-label">关键词</label>
+                    <input type="text" name="keyword" class="form-control" required>
+                </div>
+                <div class="col-md-1 d-grid">
+                    <button type="submit" class="btn btn-outline-primary">查询</button>
+                </div>
+            </form>
+            <pre id="searchResult" class="bg-dark text-white rounded mt-3 p-3 small" style="min-height: 140px; max-height: 300px; overflow: auto;"></pre>
+        </div>
     </div>
-    <?php if($totalPages > 1): ?>
-        <nav>
-            <ul class="pagination justify-content-center">
-                <?php $prevPage = max(1, $page-1); $nextPage = min($totalPages, $page+1); ?>
-                <li class="page-item <?php echo $page<=1?'disabled':''; ?>">
-                    <a class="page-link" href="herb_list.php?<?php echo htmlspecialchars(http_build_query(array_merge($qsBase, ['page' => $prevPage])), ENT_QUOTES, 'UTF-8'); ?>">上一页</a>
-                </li>
-                <?php for($i=1;$i<=$totalPages;$i++): ?>
-                    <li class="page-item <?php echo $i===$page?'active':''; ?>">
-                        <a class="page-link" href="herb_list.php?<?php echo htmlspecialchars(http_build_query(array_merge($qsBase, ['page' => $i])), ENT_QUOTES, 'UTF-8'); ?>"><?php echo $i; ?></a>
-                    </li>
-                <?php endfor; ?>
-                <li class="page-item <?php echo $page>=$totalPages?'disabled':''; ?>">
-                    <a class="page-link" href="herb_list.php?<?php echo htmlspecialchars(http_build_query(array_merge($qsBase, ['page' => $nextPage])), ENT_QUOTES, 'UTF-8'); ?>">下一页</a>
-                </li>
-            </ul>
-        </nav>
-    <?php endif; ?>
+
+    <div class="row mt-4" id="herbCards"></div>
+    <div class="text-center py-5 text-muted d-none" id="emptyState">
+        未找到相关本草，请调整筛选条件。
+    </div>
+
+    <nav class="mt-4 d-none" id="paginationNav">
+        <ul class="pagination justify-content-center" id="paginationList"></ul>
+    </nav>
 </div>
+
+<?php if ($isAdmin): ?>
+    <!-- 新增 -->
+    <div class="modal fade" id="addHerbModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">新增本草</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="addHerbForm">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">内部编码</label>
+                                <input type="text" name="code" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">名称</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">别名</label>
+                                <input type="text" name="alias" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">类别</label>
+                                <select name="category" class="form-select" required>
+                                    <option value="">请选择</option>
+                                    <option value="药用">药用</option>
+                                    <option value="食疗">食疗</option>
+                                    <option value="观赏">观赏</option>
+                                    <option value="滋补">滋补</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">产地</label>
+                                <input type="text" name="origin" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">参考价格 (CNY)</label>
+                                <input type="number" step="0.01" name="price" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">库存</label>
+                                <input type="number" name="stock" class="form-control" min="0" value="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">图片 URL</label>
+                                <input type="text" name="image_url" class="form-control" placeholder="https://">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">功效</label>
+                                <textarea name="effect" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">简介</label>
+                                <textarea name="description" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 更新 -->
+    <div class="modal fade" id="updateHerbModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">编辑本草</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="updateHerbForm">
+                    <input type="hidden" name="id" id="updateId">
+                    <div class="modal-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">内部编码</label>
+                                <input type="text" name="code" id="updateCode" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">名称</label>
+                                <input type="text" name="name" id="updateName" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">别名</label>
+                                <input type="text" name="alias" id="updateAlias" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">类别</label>
+                                <select name="category" id="updateCategory" class="form-select" required>
+                                    <option value="药用">药用</option>
+                                    <option value="食疗">食疗</option>
+                                    <option value="观赏">观赏</option>
+                                    <option value="滋补">滋补</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">产地</label>
+                                <input type="text" name="origin" id="updateOrigin" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">参考价格 (CNY)</label>
+                                <input type="number" step="0.01" name="price" id="updatePrice" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">库存</label>
+                                <input type="number" name="stock" id="updateStock" class="form-control" min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">图片 URL</label>
+                                <input type="text" name="image_url" id="updateImage" class="form-control">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">功效</label>
+                                <textarea name="effect" id="updateEffect" class="form-control" rows="2"></textarea>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">简介</label>
+                                <textarea name="description" id="updateDescription" class="form-control" rows="3"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <button type="submit" class="btn btn-primary">保存修改</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 删除 -->
+    <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    确认删除 <strong id="deleteHerbName"></strong> ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-danger" id="deleteConfirmBtn">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<script>
+window.HERB_XML_CONFIG = <?php echo json_encode($frontendConfig, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?>;
+</script>
+<script type="module" src="assets/js/herb-xml.js"></script>
 <?php
 $pageContent = ob_get_clean();
 include 'base.php';
+

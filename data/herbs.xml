@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<herbs generatedAt="2025-11-27T19:34:00+08:00">
+    <herb id="H001">
+        <code>HB-001</code>
+        <name>黄芪</name>
+        <alias>黄耆</alias>
+        <category>药用</category>
+        <price unit="CNY">18.50</price>
+        <stock>120</stock>
+        <origin>甘肃岷县</origin>
+        <effect>补气升阳、固表止汗</effect>
+        <description>黄芪性微温味甘，归脾肺经，是补气要药，可用于气虚乏力、自汗等症。</description>
+        <image_url>https://images.unsplash.com/photo-1502740479091-635887520276?auto=format&amp;fit=crop&amp;w=600</image_url>
+        <created_at>2025-11-01T09:00:00+08:00</created_at>
+    </herb>
+    <herb id="H002">
+        <code>HB-002</code>
+        <name>当归</name>
+        <alias>干归</alias>
+        <category>药用</category>
+        <price unit="CNY">26.00</price>
+        <stock>80</stock>
+        <origin>甘肃岷县</origin>
+        <effect>补血活血、调经止痛</effect>
+        <description>当归味甘辛，性温，具有补血和血、调经止痛之功，是妇科常用要药。</description>
+        <image_url>https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&amp;fit=crop&amp;w=600</image_url>
+        <created_at>2025-11-02T10:30:00+08:00</created_at>
+    </herb>
+    <herb id="H003">
+        <code>HB-003</code>
+        <name>枸杞</name>
+        <alias>枸杞子</alias>
+        <category>食疗</category>
+        <price unit="CNY">15.20</price>
+        <stock>200</stock>
+        <origin>宁夏中宁县</origin>
+        <effect>滋补肝肾、益精明目</effect>
+        <description>枸杞可入茶入膳，补肝肾、益精气、明目，是养生保健常用食材。</description>
+        <image_url>https://images.unsplash.com/photo-1504754524776-8f4f37790ca0?auto=format&amp;fit=crop&amp;w=600</image_url>
+        <created_at>2025-11-03T14:20:00+08:00</created_at>
+    </herb>
+    <herb id="H004">
+        <code>HB-004</code>
+        <name>金银花</name>
+        <alias>忍冬花</alias>
+        <category>药用</category>
+        <price unit="CNY">32.50</price>
+        <stock>95</stock>
+        <origin>山东平邑</origin>
+        <effect>清热解毒、疏散风热</effect>
+        <description>金银花善清热解毒，常用于外感风热、温病初起、咽喉肿痛等症。</description>
+        <image_url>https://images.unsplash.com/photo-1501004318641-b39e6451bec6?auto=format&amp;fit=crop&amp;w=600</image_url>
+        <created_at>2025-11-05T08:45:00+08:00</created_at>
+    </herb>
+    <herb id="H005">
+        <code>HB-005</code>
+        <name>灵芝</name>
+        <alias>赤芝</alias>
+        <category>滋补</category>
+        <price unit="CNY">58.00</price>
+        <stock>45</stock>
+        <origin>浙江仙居</origin>
+        <effect>扶正固本、宁心安神</effect>
+        <description>灵芝味甘性平，能补气安神、扶正固本，常用于体虚气短、失眠心悸。</description>
+        <image_url>https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&amp;fit=crop&amp;w=600</image_url>
+        <created_at>2025-11-06T16:10:00+08:00</created_at>
+    </herb>
+    <herb id="H006">
+        <code>HB-006</code>
+        <name>薄荷</name>
+        <alias>蕃荷菜</alias>
+        <category>观赏</category>
+        <price unit="CNY">9.80</price>
+        <stock>300</stock>
+        <origin>江苏沭阳</origin>
+        <effect>疏散风热、透疹止痒</effect>
+        <description>薄荷芬芳清凉，可疏散风热、疏肝解郁，并具观赏与食用价值。</description>
+        <image_url>https://images.unsplash.com/photo-1472145246862-b24cf25c3b02?auto=format&amp;fit=crop&amp;w=600</image_url>
+        <created_at>2025-11-07T11:55:00+08:00</created_at>
+    </herb>
+</herbs>
+

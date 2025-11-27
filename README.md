@@ -90,5 +90,52 @@
 - community.php：用户社区
 - base.php：基础布局文件，包含导航栏、页脚等
 
+## 基于 XML 存储的小型应用（三层架构 + AJAX + XSL）
+- 数据存储：`data/herbs.xml`（示例字段不少于 3 项：`id`、`code`、`name`、`price`、`category`、`stock` 等）
+- 表示层：`herb_list.php`（页面不改样式，新增交互控件与占位元素）
+- 业务逻辑层：`backend/Services/HerbService.php`（分页、排序、筛选、XPath 查询、增删改）
+- 数据访问层：`backend/Data/XmlHerbRepository.php`（XML 读写、节点查找、持久化）
+- 前端交互：`assets/js/herb-xml.js`（AJAX 模块，负责分页、查询、CRUD 与 XSL 渲染）
+- XSL 视图：`xml/herbs-table.xsl`（将 XML 转换为表格，支持指定字段与顺序排序）
+
+### 运行与使用
+1. 启动本地环境（如 XAMPP），确保站点根指向项目目录。
+2. 访问 `herb_list.php`：
+   - 筛选区：设置关键词、类别、排序与每页条数，点击“筛选”后触发 AJAX 更新列表。
+   - XSL 视图区：选择排序字段与方向，点击“刷新”以 XSLT 在前端渲染 XML 表格。
+   - XPath 查询区：选择字段与模式（精确/模糊），输入关键词并“查询”，结果以 XML 片段展示。
+   - 管理员可在卡片上执行“编辑/删除”，并可通过“新增本草”模态框添加记录。
+
+### API 接口
+- 列表分页：`GET api/herbs.php?page=1&pageSize=6&sortField=name&sortOrder=asc&keyword=&category=` 返回 JSON。
+- 原始 XML：`GET api/herbs.php?action=xml` 返回 XML 原文（供 XSLT 使用）。
+- XPath 查询：`GET api/herbs.php?action=search&field=name&mode=fuzzy&keyword=黄芪` 返回 XML 片段。
+- 详情：`GET api/herbs.php?action=detail&id=H001` 返回单条 JSON。
+- 新增：`POST api/herbs.php`（管理员）请求体 JSON。
+- 更新：`PUT api/herbs.php?id=H001`（管理员）请求体 JSON。
+- 删除：`DELETE api/herbs.php?id=H001`（管理员）。
+
+### 权限与安全
+- 写操作（新增/更新/删除）需要管理员权限：`backend/Api/herbs.php:134-141`。
+- 业务层进行字段白名单与数值规范化：`backend/Services/HerbService.php:189-222`。
+- XML 写入采用临时文件 + 原子替换以降低风险：`backend/Data/XmlHerbRepository.php:177-191`。
+
+### 前端模块说明（assets/js/herb-xml.js）
+- 初始化与事件绑定：完成筛选、查询、XSL刷新与 CRUD 的事件挂载。
+- `loadPage()`：调用分页接口并渲染卡片与分页条。
+- `loadXslTable()`：获取 XML 与 XSL，前端进行 XSLT 渲染，支持数值/文本排序。
+- `handleAdd/handleUpdate/handleDelete`：管理员新增、更新、删除操作，成功后自动刷新列表。
+- `handleSearch()`：触发 XPath 查询并在页面展示返回的 XML 片段。
+
+### 与原有系统的关系
+- 用户系统仍使用 MySQL；本草数据模块基于 XML 存储，两者并行不冲突。
+- 页面样式与布局保持不变，仅新增交互逻辑与视图占位（如 XSL 视图与查询结果区域）。
+
+### 测试建议
+- 浏览：在筛选区变更条件，确认列表与分页更新正确。
+- XSL：切换排序字段与升降序，验证表格顺序正确。
+- 查询：分别测试精确与模糊查询，检查返回片段是否符合预期。
+- CRUD（管理员）：新增/编辑/删除后，检查列表与 XSL 视图是否同步刷新。
+
 # 许可证
 本项目基于 MIT 许可证开源，你可以在遵守许可证条款的前提下自由使用、修改和分发本项目的代码。
